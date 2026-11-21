@@ -1,0 +1,8 @@
+# Team radio clips: copyrighted broadcast audio, kept on this computer only
+audio/*.mp3
+
+# Design references (screenshots), kept on this computer only
+references/
+
+# Claude Code local settings
+.claude/

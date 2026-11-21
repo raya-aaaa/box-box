@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#07080c">
+  <title>Box Box</title>
+  <!-- App icon, made by create-shortcut.ps1 (also used for the app window's taskbar button) -->
+  <link rel="icon" type="image/png" href="icon/box-box.png">
+
+  <!-- Fonts: Titillium Web for labels, JetBrains Mono for every number -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Titillium+Web:wght@400;600;700;900&display=swap">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ===================== TOP BAR: brand, session clock, driver ===================== -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-lines" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="brand-mark">BOX<b>BOX</b></span>
+    </div>
+
+    <div class="session">
+      <span class="session-tag" id="sessionTag">Q1</span>
+      <div class="session-info">
+        <time class="session-clock" id="clock">--:--:--</time>
+        <span class="session-name" id="sessionName">Morning session</span>
+      </div>
+    </div>
+
+    <div class="topbar-actions">
+      <button class="driver-chip" id="settingsBtn" type="button" aria-label="Driver settings">
+        <span class="driver-bar" aria-hidden="true"></span>
+        <span class="driver-text">
+          <span class="driver-name" id="driverName">DRIVER</span>
+          <span class="driver-team" id="driverTeam">No team</span>
+        </span>
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+      <button class="btn btn-ghost btn-reset" id="resetBtn" type="button" aria-label="Reset day">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/></svg>
+        <span>Reset day</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ===================== YELLOW FLAG: the task on track is over its total estimate ===================== -->
+  <div class="yellow-flag" id="yellowFlag" hidden>
+    <svg class="icon yf-icon" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7" fill="none"/></svg>
+    <b>Yellow flag</b>
+    <span class="yf-task" id="yfTask"></span>
+    <span class="yf-over">+<span id="yfOver">00:00</span></span>
+  </div>
+
+  <main class="layout">
+
+    <!-- ===================== TIMING TOWER (the task list) ===================== -->
+    <aside class="tower" aria-label="Timing tower">
+      <div class="tower-head">
+        <h1 class="tower-title">Timing tower</h1>
+        <span class="tower-count" title="Tasks finished"><b id="doneCount">0</b>/<span id="totalCount">0</span></span>
+      </div>
+      <div class="tower-cols" aria-hidden="true"><span>Pos</span><span>Task</span></div>
+
+      <ol class="tower-list" id="towerList"></ol>
+
+      <!-- Shown when there are no tasks yet -->
+      <div class="tower-empty" id="towerEmpty">
+        <div class="grid-slots" aria-hidden="true"><span>P1</span><span>P2</span></div>
+        <p>The grid is empty.<br>Add a task to line up.</p>
+      </div>
+
+      <!-- New task: a name plus 1 to 6 sectors (steps), each with its own estimate -->
+      <form class="add-form" id="addForm" autocomplete="off">
+        <input class="add-name" id="taskName" type="text" maxlength="60" placeholder="Add a task…" aria-label="Task name" required>
+        <ol class="step-list" id="stepList"></ol>
+        <div class="add-foot">
+          <button class="add-sector" id="addStepBtn" type="button">+ Sector</button>
+          <span class="add-total">Total <b id="addTotal">0</b> min</span>
+          <button class="add-btn" type="submit">Add</button>
+        </div>
+      </form>
+    </aside>
+
+    <!-- ===================== STAGE: lap timer / pit lane ===================== -->
+    <section class="stage" aria-label="Lap timer">
+
+      <!-- Qualifying-style lap timer, visible while a task is on track -->
+      <article class="timer-card" id="timerCard" hidden>
+        <header class="tc-head">
+          <span class="tc-pos" id="tcPos">1</span>
+          <span class="tc-bar" aria-hidden="true"></span>
+          <h2 class="tc-name" id="tcName">Task</h2>
+          <!-- Shown while the screen is being kept on -->
+          <span class="tc-awake" role="img" aria-label="Screen kept on" title="Screen stays on while the timer runs">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          </span>
+          <span class="tc-status"><i aria-hidden="true"></i><span id="tcStatusText">On track</span></span>
+        </header>
+
+        <div class="tc-body">
+          <div class="tc-main">
+            <!-- Total lap time -->
+            <div class="tc-time" id="tcTime" role="timer" aria-label="Lap time"></div>
+
+            <!-- Current sector: its own timer and delta vs its estimate -->
+            <div class="tc-step">
+              <span class="tc-step-tag" id="tcStepTag">S1/1</span>
+              <span class="tc-step-name" id="tcStepName"></span>
+              <span class="tc-step-row">
+                <span class="tc-step-time" id="tcStepTime">00:00.000</span>
+                <span class="tc-delta" id="tcStepDelta">
+                  <span class="tc-delta-label">Delta</span>
+                  <span id="tcStepDeltaValue">−00:00.000</span>
+                </span>
+              </span>
+            </div>
+          </div>
+
+          <div class="tc-ref">
+            <span class="tc-ref-time" id="tcEst">00:00.000</span>
+            <span class="tc-ref-label">Total estimate</span>
+            <span class="tc-delta" id="tcDelta">
+              <span class="tc-delta-label">Delta</span>
+              <span id="tcDeltaValue">−00:00.000</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Mini-sectors: one bar per step, built by app.js -->
+        <div class="sectors" id="tcSectors"></div>
+
+        <div class="tc-actions">
+          <button class="btn btn-primary btn-finish" id="nextBtn" type="button">
+            <span class="chequer" aria-hidden="true"></span>
+            <svg class="icon next-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m13 17 5-5-5-5"/><path d="m6 17 5-5-5-5"/></svg>
+            <span id="nextLabel">Next sector</span>
+          </button>
+          <button class="btn btn-ghost" id="abortBtn" type="button">Abort lap</button>
+        </div>
+        <p class="tc-result" id="tcResult"></p>
+      </article>
+
+      <!-- Pit lane: visible when nothing is on track -->
+      <article class="idle-card" id="idleCard">
+        <div class="lights" id="lights" data-state="off" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+        <h2 class="idle-title" id="idleTitle">Grid is empty</h2>
+        <p class="idle-sub" id="idleSub"></p>
+        <div class="next-up" id="nextUp" hidden>
+          <span class="eyebrow">Next up</span>
+          <span class="next-name" id="nextName"></span>
+          <span class="next-est" id="nextEst"></span>
+          <button class="btn btn-primary" id="nextStart" type="button">Start</button>
+        </div>
+      </article>
+
+      <!-- Session stats -->
+      <dl class="stats">
+        <div class="stat"><dt>Classified</dt><dd id="statDone">0/0</dd></div>
+        <div class="stat"><dt>Time on track</dt><dd id="statTime">00:00</dd></div>
+        <div class="stat"><dt>Best ratio</dt><dd><span id="statBest">—</span><small id="statBestName"></small></dd></div>
+        <div class="stat"><dt>Sectors</dt>
+          <dd class="stat-sectors">
+            <span class="s-purple" id="statPurple" title="Purple">0</span>
+            <span class="s-green" id="statGreen" title="Green">0</span>
+            <span class="s-yellow" id="statYellow" title="Yellow">0</span>
+          </dd>
+        </div>
+      </dl>
+    </section>
+  </main>
+
+  <!-- ===================== TEAM RADIO: visible while a clip plays ===================== -->
+  <div class="radio" id="radio" role="status" aria-live="polite">
+    <div class="radio-head">Team radio<span class="radio-sep" aria-hidden="true">·</span><span class="radio-who" id="radioWho">DRIVER</span></div>
+    <div class="radio-wave" id="radioWave" aria-hidden="true"></div>
+    <div class="radio-line" aria-hidden="true"></div>
+    <p class="radio-msg" id="radioMsg"></p>
+    <!-- Only while the browser is still blocking sound (no click since the app opened) -->
+    <p class="radio-hint" aria-hidden="true">Click to listen</p>
+  </div>
+
+  <!-- ===================== SETUP / SETTINGS DIALOG ===================== -->
+  <dialog class="setup" id="setupDialog" aria-labelledby="setupTitle">
+    <form id="setupForm" novalidate>
+      <header class="setup-head">
+        <span class="brand-mark">BOX<b>BOX</b></span>
+        <h2 id="setupTitle">Welcome to the paddock</h2>
+        <p>Pick your driver name and the team you race for.</p>
+        <button class="icon-btn" id="setupClose" type="button" aria-label="Close">×</button>
+      </header>
+
+      <section class="setup-step">
+        <h3 class="step-title"><span class="step-num">01</span>Driver name</h3>
+        <div class="nick-field">
+          <input class="nick-input" id="nickInput" type="text" maxlength="12" placeholder="RAYA" autocomplete="nickname" spellcheck="false" aria-label="Nickname, up to 12 characters">
+          <span class="nick-count" id="nickCount">0/12</span>
+        </div>
+      </section>
+
+      <section class="setup-step">
+        <h3 class="step-title"><span class="step-num">02</span>Choose your team</h3>
+        <div class="team-grid" id="teamGrid" role="radiogroup" aria-label="Team"></div>
+      </section>
+
+      <section class="setup-step">
+        <h3 class="step-title"><span class="step-num">03</span>Team radio</h3>
+        <label class="switch-row">
+          <span class="switch-text">
+            <b>Mute team radio</b>
+            <small>Clips play at 80% of each sector and of the whole task, when a task goes over its estimate, and at the chequered flag.</small>
+          </span>
+          <input class="switch" id="muteToggle" type="checkbox" role="switch">
+        </label>
+      </section>
+
+      <section class="setup-step">
+        <h3 class="step-title"><span class="step-num">04</span>Screen</h3>
+        <label class="switch-row">
+          <span class="switch-text">
+            <b>Keep screen on</b>
+            <small>While a task is on track the screen won't dim or switch off, so the timer stays in view.</small>
+          </span>
+          <input class="switch" id="awakeToggle" type="checkbox" role="switch">
+        </label>
+      </section>
+
+      <footer class="setup-foot">
+        <!-- Live preview, styled like the quali card header -->
+        <div class="nameplate" aria-hidden="true">
+          <span class="np-pos">1</span>
+          <span class="np-name" id="npName">DRIVER</span>
+          <span class="np-team" id="npTeam">Pick a team</span>
+        </div>
+        <button class="btn btn-primary" id="setupSave" type="submit">Lights out</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- ===================== RESET CONFIRMATION ===================== -->
+  <dialog class="confirm" id="resetDialog" aria-labelledby="resetTitle">
+    <form method="dialog">
+      <div class="flag-band" aria-hidden="true"></div>
+      <div class="confirm-body">
+        <h2 id="resetTitle">Red flag</h2>
+        <p>Reset the day? Every task and lap time will be cleared.</p>
+      </div>
+      <div class="confirm-actions">
+        <button class="btn btn-ghost" value="cancel">Keep racing</button>
+        <button class="btn btn-danger" value="reset">Reset day</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="audio-config.js"></script>
+  <script src="app.js"></script>
+
+  <!-- If app.js didn't load (usually: index.html opened straight from inside a .zip,
+       so its other files aren't next to it), show how to fix it instead of a broken page -->
+  <script>
+    if (typeof state === 'undefined') {
+      document.body.style.background = '#07080c';
+      document.body.innerHTML =
+        '<div style="max-width:560px;margin:12vh auto;padding:28px;border-radius:16px;background:#101219;color:#f2f3f7;font:16px/1.5 system-ui,sans-serif">' +
+        '<h1 style="margin:0 0 12px;font-size:26px">Box Box can\'t find its files</h1>' +
+        '<p>If you opened it from inside a .zip, extract it first: right-click the zip, <b>Extract All</b>, then open <b>index.html</b> in the extracted folder.</p>' +
+        '<p style="color:#8b90a5">Se l\'hai aperto da dentro uno .zip, estrailo prima: clic destro sullo zip, <b>Estrai tutto</b>, poi apri <b>index.html</b> nella cartella estratta.</p>' +
+        '</div>';
+    }
+  </script>
+</body>
+</html>
