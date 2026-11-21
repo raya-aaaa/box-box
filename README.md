@@ -9,7 +9,7 @@ Start the timer, hit *NEXT SECTOR* as you go, and every finished lap gets a colo
 - 🟢 **Green**: finished within the estimate
 - 🟡 **Yellow**: finished over the estimate
 
-🔗 **Live:** https://rayaaaa-aaaa.github.io/box-box/
+🔗 **Live:** https://raya-aaaa.github.io/box-box/
 
 ## Features
 
